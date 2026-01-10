@@ -1,0 +1,48 @@
+# SiliconCI Pipeline Configuration
+# Edge-case example demonstrating DAG-based execution
+
+version: 1
+
+project:
+  name: fifo-param-example
+  description: Parameterized FIFO with advanced features
+  top_module: fifo
+
+# DAG-based stage dependencies (not linear)
+# 
+#   lint ──┬──> simulate
+#          │
+#          └──> synth_check
+#
+stages:
+  - lint
+  - simulate
+  - synth_check
+
+lint:
+  tool: verilator
+  sources:
+    - "src/**/*.sv"
+  args:
+    - "--lint-only"
+    - "-Wall"
+  # No dependencies - runs first
+
+simulate:
+  tool: iverilog
+  testbench: tb/tb_fifo.sv
+  top: tb_fifo
+  sources:
+    - "src/**/*.sv"
+  timeout: 120
+  depends_on:  # Explicit DAG dependency
+    - lint
+
+synth_check:
+  tool: yosys
+  top: fifo
+  target: ice40
+  sources:
+    - "src/**/*.sv"
+  depends_on:  # Explicit DAG dependency
+    - lint
