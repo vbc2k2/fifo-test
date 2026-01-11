@@ -20,6 +20,9 @@ module tb_fifo;
     logic [DATA_WIDTH-1:0]  rd_data;
     logic                   empty;
     logic [ADDR_WIDTH:0]    count;
+    logic                   almost_full;
+    logic                   almost_empty;
+    logic [DATA_WIDTH-1:0]  read_val;
     
     // Reference queue for checking
     logic [DATA_WIDTH-1:0] ref_queue [$];
@@ -41,7 +44,9 @@ module tb_fifo;
         .rd_en(rd_en),
         .rd_data(rd_data),
         .empty(empty),
-        .count(count)
+        .count(count),
+        .almost_full(almost_full),
+        .almost_empty(almost_empty)
     );
     
     // Clock generation
@@ -116,6 +121,10 @@ module tb_fifo;
         check_result("Empty after reset", empty == 1);
         check_result("Not full after reset", full == 0);
         check_result("Count is 0", count == 0);
+        if (DEPTH > 8) begin
+            check_result("Almost empty after reset", almost_empty == 1);
+            check_result("Not almost full after reset", almost_full == 0);
+        end
         
         // Test 2: Single write/read
         $display("\n--- Test 2: Single Write/Read ---");
@@ -123,7 +132,6 @@ module tb_fifo;
         check_result("Not empty after write", empty == 0);
         check_result("Count is 1", count == 1);
         
-        logic [DATA_WIDTH-1:0] read_val;
         read_fifo(read_val);
         check_result("Read correct value", read_val == 8'hAB);
         check_result("Empty after read", empty == 1);

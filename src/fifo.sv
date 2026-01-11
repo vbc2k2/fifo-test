@@ -20,7 +20,9 @@ module fifo #(
     output logic                   empty,
     
     // Status
-    output logic [ADDR_WIDTH:0]    count
+    output logic [ADDR_WIDTH:0]    count,
+    output logic                   almost_full,
+    output logic                   almost_empty
 );
 
     // Memory array
@@ -74,11 +76,11 @@ module fifo #(
     generate
         if (DEPTH > 8) begin : gen_large_fifo
             // Additional monitoring for larger FIFOs
-            logic almost_full;
-            logic almost_empty;
-            
             assign almost_full  = (fifo_count >= DEPTH - 2);
             assign almost_empty = (fifo_count <= 2);
+        end else begin : gen_small_fifo
+            assign almost_full = 1'b0;
+            assign almost_empty = 1'b0;
         end
     endgenerate
 
